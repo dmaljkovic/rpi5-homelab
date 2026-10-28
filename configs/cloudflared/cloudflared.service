@@ -1,0 +1,29 @@
+# /etc/systemd/system/cloudflared.service
+#
+# Custom unit used on the Pi. The tunnel name must match config.yml.
+# After editing:
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now cloudflared
+
+[Unit]
+Description=cloudflared
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+TimeoutStartSec=0
+Type=notify
+ExecStart=/usr/bin/cloudflared --config /etc/cloudflared/config.yml tunnel run pi5-tunnel
+Restart=on-failure
+RestartSec=5s
+
+# Optional hardening. Test after enabling.
+# NoNewPrivileges=true
+# PrivateTmp=true
+# ProtectSystem=strict
+# ProtectHome=true
+# ReadOnlyPaths=/etc/cloudflared
+# RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+
+[Install]
+WantedBy=multi-user.target

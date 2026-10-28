@@ -1,0 +1,26 @@
+# /home/pi/jellyfin/docker-compose.yml
+#
+# Sanitized example based on the live deployment.
+# Changes from the original:
+#   - image tag pinned
+#   - JELLYFIN_PublishedServerUrl uses the public HTTPS URL
+#   - healthcheck points at localhost
+
+services:
+  jellyfin:
+    image: jellyfin/jellyfin:10.10.7
+    container_name: jellyfin
+    user: 1000:1000
+    network_mode: host
+    volumes:
+      - ./config:/config
+      - ./cache:/cache
+      - /mnt/myssd:/media
+    restart: unless-stopped
+    environment:
+      - JELLYFIN_PublishedServerUrl=https://media.example.com
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8096/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5

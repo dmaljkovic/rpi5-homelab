@@ -1,0 +1,28 @@
+# /home/pi/vaultwarden/docker-compose.yaml
+#
+# Sanitized example based on the live deployment.
+# Improvements over the original:
+#   - admin token moved to .env (use an Argon2 hash)
+#   - image tag pinned
+#   - ports remain bound to localhost
+#
+# WARNING: Vaultwarden's vw-data/config.json overrides environment variables
+# for DOMAIN, SIGNUPS_ALLOWED and ADMIN_TOKEN. Use one source of truth only.
+
+services:
+  vaultwarden:
+    image: vaultwarden/server:1.37.1
+    container_name: vaultwarden
+    restart: unless-stopped
+    volumes:
+      - ./vw-data:/data
+    ports:
+      - "127.0.0.1:8081:80"     # HTTP
+      - "127.0.0.1:3012:3012"   # WebSocket (not routed through the tunnel by default)
+    environment:
+      DOMAIN: ${DOMAIN}
+      WEBSOCKET_ENABLED: "true"
+      ADMIN_TOKEN: ${ADMIN_TOKEN}
+      SIGNUPS_ALLOWED: "false"
+      ROCKET_PORT: "80"
+      ROCKET_WORKERS: "10"

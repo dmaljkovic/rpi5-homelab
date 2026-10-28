@@ -1,0 +1,32 @@
+# /etc/NetworkManager/system-connections/01-rpi5-static.nmconnection
+#
+# Example static Ethernet profile. The live profile is named
+# "Wired connection 1" and is managed by nmcli.
+#
+# Install:
+#   sudo cp 01-rpi5-static.nmconnection.example \
+#     /etc/NetworkManager/system-connections/01-rpi5-static.nmconnection
+#   sudo chmod 600 /etc/NetworkManager/system-connections/01-rpi5-static.nmconnection
+#   sudo nmcli connection reload
+#   sudo nmcli connection up 01-rpi5-static
+#
+# Adjust the interface name (eth0) and addresses for your network.
+
+[connection]
+id=01-rpi5-static
+uuid=00000000-0000-0000-0000-000000000000
+type=ethernet
+interface-name=eth0
+autoconnect=true
+
+[ethernet]
+
+[ipv4]
+method=manual
+address1=192.168.1.10/24,192.168.1.1
+dns=192.168.1.10;
+may-fail=false
+
+[ipv6]
+method=auto
+addr-gen-mode=default

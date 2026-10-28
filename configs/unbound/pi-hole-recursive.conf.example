@@ -1,0 +1,38 @@
+# Full-recursion variant of pi-hole.conf.
+#
+# This is the same as the final configuration but WITHOUT the forward-zone
+# block. Unbound resolves from the root servers directly instead of forwarding
+# to Cloudflare over DNS-over-TLS.
+#
+# DNSSEC validation comes from the Debian trust anchor:
+#   /etc/unbound/unbound.conf.d/root-auto-trust-anchor-file.conf
+#   auto-trust-anchor-file: "/var/lib/unbound/root.key"
+#
+# Trade-off: no third-party DNS provider sees your queries, but queries originate
+# from your public IP and resolution is usually slower than a nearby forwarder.
+
+server:
+    verbosity: 0
+    interface: 127.0.0.1
+    port: 5335
+    do-ip4: yes
+    do-udp: yes
+    do-tcp: yes
+    do-ip6: no
+    prefer-ip6: no
+
+    harden-glue: yes
+    harden-dnssec-stripped: yes
+    use-caps-for-id: no
+
+    edns-buffer-size: 1232
+    prefetch: yes
+    num-threads: 1
+    so-rcvbuf: 1m
+
+    private-address: 192.168.0.0/16
+    private-address: 169.254.0.0/16
+    private-address: 172.16.0.0/12
+    private-address: 10.0.0.0/8
+    private-address: fd00::/8
+    private-address: fe80::/10

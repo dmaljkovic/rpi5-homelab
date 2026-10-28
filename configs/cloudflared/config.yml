@@ -1,0 +1,16 @@
+# /etc/cloudflared/config.yml
+#
+# Sanitized example. Replace example.com, the tunnel name and the credentials
+# path with your own values. Never commit the real credentials JSON.
+
+tunnel: pi5-tunnel
+credentials-file: /etc/cloudflared/credentials.json
+
+ingress:
+  - hostname: cloud.example.com
+    service: http://localhost:8082      # Nextcloud
+  - hostname: vault.example.com
+    service: http://localhost:8081      # Vaultwarden HTTP
+  - hostname: media.example.com
+    service: http://localhost:8096      # Jellyfin
+  - service: http_status:404            # Required catch-all

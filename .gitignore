@@ -1,0 +1,42 @@
+# Secrets and credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials*.json
+*credentials*.json
+cert.pem
+foo.json
+config.json
+.smbcredentials
+authorized_keys
+
+# Runtime data and bind mounts
+data/
+db/
+html/
+vw-data/
+cache/
+config/
+*.sqlite3
+*.sqlite3-*
+*.db
+*.db-shm
+*.db-wal
+
+# Backups and dumps
+*.tar.gz
+*.tgz
+*.sql
+backups/
+
+# Logs and temporary files
+*.log
+*.tmp
+*.swp
+*~
+.DS_Store
+
+# Keep example files
+!configs/**/*.example

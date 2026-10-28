@@ -1,0 +1,45 @@
+# /home/pi/nextcloud/docker-compose.yaml
+#
+# Sanitized example based on the live deployment.
+# Improvements over the original:
+#   - passwords moved to .env
+#   - image tags pinned instead of :latest
+#   - app published on 127.0.0.1 only (access via Cloudflare Tunnel)
+#   - healthcheck added
+#
+# Create .env from .env.example before running.
+
+services:
+  db:
+    image: mariadb:10.6.24
+    container_name: nextcloud-db
+    restart: always
+    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
+    volumes:
+      - ./db:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+
+  app:
+    image: nextcloud:32.0.1
+    container_name: nextcloud-app
+    restart: always
+    ports:
+      - "127.0.0.1:8082:80"
+    depends_on:
+      - db
+    volumes:
+      - ./html:/var/www/html
+    environment:
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_HOST: db
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost/status.php || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5

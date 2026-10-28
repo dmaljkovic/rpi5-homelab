@@ -1,0 +1,9 @@
+# /etc/fstab example for the Raspberry Pi 5
+#
+# Replace the PARTUUID/UUID values with your own (`sudo blkid`).
+# The root partition uses noatime to reduce SD-card writes.
+
+proc            /proc           proc    defaults          0       0
+PARTUUID=xxxxxxxx-01  /boot/firmware  vfat    defaults        0       2
+PARTUUID=xxxxxxxx-02  /               ext4    defaults,noatime  0       1
+UUID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx  /mnt/myssd  ext4  defaults  0  2

@@ -1,0 +1,41 @@
+<?php
+// Sanitized excerpt of /home/pi/nextcloud/html/config/config.php
+//
+// The installer generates the real file and it contains secrets. Do not copy
+// this file over a working config. Use `occ config:system:set` where possible.
+
+$CONFIG = array(
+    'instanceid' => 'REDACTED',
+    'passwordsalt' => 'REDACTED',
+    'secret' => 'REDACTED',
+
+    'trusted_domains' => array(
+        0 => 'cloud.example.com',
+        // 1 => '192.168.1.10',  // only if direct LAN access is enabled
+    ),
+
+    // Canonical URL used by cron, emails and CLI.
+    'overwrite.cli.url' => 'https://cloud.example.com',
+    // Force generated URLs to HTTPS when TLS is terminated by Cloudflare.
+    'overwriteprotocol' => 'https',
+
+    // Address from which cloudflared reaches the container. Verify what the
+    // container actually sees; Docker's userland proxy often uses the bridge
+    // gateway (for example 172.17.0.1).
+    'trusted_proxies' => array(
+        0 => '172.17.0.1',
+    ),
+    'forwarded_for_headers' => array(
+        0 => 'HTTP_X_FORWARDED_FOR',
+    ),
+
+    'datadirectory' => '/var/www/html/data',
+    'dbtype' => 'mysql',
+    'dbname' => 'nextcloud',
+    'dbhost' => 'db',
+    'dbuser' => 'nextcloud',
+    'dbpassword' => 'REDACTED',
+
+    'memcache.local' => '\OC\Memcache\APCu',
+    'default_phone_region' => 'DE',
+);
