@@ -31,7 +31,7 @@ Two details are important:
 
 ## Pi-hole installation
 
-Pi-hole v6 was installed with the official installer. At scan time:
+Pi-hole v6 was installed with the official installer. Current versions:
 
 ```text
 Core version : v6.4.3
@@ -134,7 +134,7 @@ Gravity is updated by the Pi-hole cron job in `/etc/cron.d/pihole`. Manual updat
 sudo pihole -g
 ```
 
-The `domainlist` table (local allow/deny/CNAME records) was empty at scan time.
+The `domainlist` table (local allow/deny/CNAME records) is empty.
 
 ## Unbound installation and configuration
 
@@ -256,7 +256,7 @@ dig +short example.com @127.0.0.1 -p 5335
 sudo pihole -g -q 2>/dev/null || true
 ```
 
-Observed results at scan time:
+Observed results:
 
 ```text
 dnssec-failed.org via Pi-hole : SERVFAIL

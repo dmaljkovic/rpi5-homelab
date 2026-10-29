@@ -2,12 +2,12 @@
 #
 # Sanitized example based on the live deployment.
 # Improvements over the original:
-#   - admin token moved to .env (use an Argon2 hash)
+#   - admin token kept in vw-data/config.json as an Argon2 hash
 #   - image tag pinned
 #   - ports remain bound to localhost
 #
 # WARNING: Vaultwarden's vw-data/config.json overrides environment variables
-# for DOMAIN, SIGNUPS_ALLOWED and ADMIN_TOKEN. Use one source of truth only.
+# for DOMAIN and SIGNUPS_ALLOWED. Keep one source of truth only.
 
 services:
   vaultwarden:
@@ -22,7 +22,7 @@ services:
     environment:
       DOMAIN: ${DOMAIN}
       WEBSOCKET_ENABLED: "true"
-      ADMIN_TOKEN: ${ADMIN_TOKEN}
+      # ADMIN_TOKEN is set in vw-data/config.json (Argon2 hash)
       SIGNUPS_ALLOWED: "false"
       ROCKET_PORT: "80"
       ROCKET_WORKERS: "10"

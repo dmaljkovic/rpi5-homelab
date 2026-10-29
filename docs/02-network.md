@@ -116,7 +116,7 @@ dig +noall +comments dnssec-failed.org @127.0.0.1 | grep status
 
 Expected: `cloudflare.com` resolves, `dnssec-failed.org` returns `SERVFAIL`.
 
-## Listening ports at scan time
+## Listening ports
 
 | Proto | Port | Process | Scope | Purpose |
 | --- | --- | --- | --- | --- |
@@ -146,7 +146,7 @@ Notes:
 
 ## Firewall
 
-At scan time there was **no UFW** and no custom host firewall:
+There is **no UFW** and no custom host firewall:
 
 ```text
 ufw status -> no-ufw

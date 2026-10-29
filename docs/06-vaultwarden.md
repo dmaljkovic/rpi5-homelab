@@ -17,7 +17,7 @@ Cloudflare Tunnel at `vault.example.com`.
 | WebSocket port | `127.0.0.1:3012 -> 3012/tcp` |
 | Data | `/home/pi/vaultwarden/vw-data` (bind mount) |
 | Public URL | `https://vault.example.com` |
-| Health | healthy at scan |
+| Health | healthy |
 
 The service is bound to `127.0.0.1`, so it is not reachable directly from the LAN. The
 only path in is through `cloudflared`.
@@ -34,13 +34,13 @@ Important settings:
 | `DOMAIN` | `https://vault.example.com` | Public URL used in emails and WebAuthn |
 | `WEBSOCKET_ENABLED` | `true` | Enable live sync notifications |
 | `SIGNUPS_ALLOWED` | `false` | No new accounts after the initial one |
-| `ADMIN_TOKEN` | secret | Protects the `/admin` page |
+| Admin token | Argon2 hash in `vw-data/config.json` | Protects the `/admin` page |
 | `ROCKET_PORT` | `80` | HTTP listen port inside the container |
 | `ROCKET_WORKERS` | `10` | Worker threads |
 
 ## The config-precedence trap
 
-At scan time the container logged:
+The container logged:
 
 ```text
 [WARNING] The following environment variables are being overridden by the config.json file.
@@ -52,6 +52,11 @@ Vaultwarden saves settings to `vw-data/config.json` when you change them in the 
 panel. **Values in `config.json` take precedence over environment variables in
 `docker-compose.yaml`.** This means editing `DOMAIN`, `SIGNUPS_ALLOWED` or `ADMIN_TOKEN`
 in the compose file and restarting may have no effect.
+
+On 2026-10-29 the duplicate `ADMIN_TOKEN` was removed from `.env` and
+`docker-compose.yaml`, leaving `config.json` as the single source of truth. The running
+container no longer receives `ADMIN_TOKEN` at all; only `DOMAIN` and `SIGNUPS_ALLOWED`
+remain as overridden env fallbacks, so those two warnings are expected.
 
 Inspect the file:
 
@@ -69,23 +74,40 @@ Do not set them in both places and expect the compose file to win.
 
 ## Admin token
 
-The admin token was stored in plaintext. Vaultwarden supports an Argon2 PHC hash, which
-is preferable because a plaintext token in a compose file or backup is immediately
-usable.
+The admin token was **not** stored in plaintext. The original
+`vw-data/config.json` contained an Argon2i PHC hash
+(`$argon2i$v=19$m=16,t=2,p=1$...`, 72 characters). A second, different hash was present
+as `ADMIN_TOKEN` in `.env` and passed by compose, but `config.json` overrode it. The
+duplicate was removed so only the authoritative hash remains.
 
-Generate a hash inside the container:
+The current hash is valid but uses Argon2i. To move to Argon2id without changing the
+token, generate a new hash of the **same** admin password and replace `admin_token` in
+`config.json`:
 
 ```bash
+# Back up first
+sudo cp -a /home/pi/vaultwarden/vw-data/config.json \
+  /root/config.json.bak-$(date +%Y%m%d-%H%M%S)
+
+# Needs an interactive TTY
 docker exec -it vaultwarden /vaultwarden hash
-# Enter the admin password when prompted, copy the $argon2... output
+# Enter the existing admin password, copy the $argon2id... output
 ```
 
-Then set the hashed value as `ADMIN_TOKEN` (in `config.json` or the compose file,
-whichever is authoritative) and restart:
+Then edit `config.json` and set:
+
+```json
+"admin_token": "$argon2id$v=19$m=65540,t=3,p=4$..."
+```
+
+Do not also set `ADMIN_TOKEN` in `.env` or compose. Restart:
 
 ```bash
 docker compose restart vaultwarden
 ```
+
+Rotating or re-hashing the **admin** token does not affect user accounts, vault items,
+or normal user logins. It only changes the password for the `/admin` page.
 
 The admin page is at `https://vault.example.com/admin`. Consider restricting it with
 Cloudflare Access as well.
@@ -110,7 +132,7 @@ vw-data-backup-2025-09-01
 vw-data-backup-20260817-204625
 ```
 
-There is no automatic backup job. See [09-backup-and-recovery.md](09-backup-and-recovery.md).
+There is no automatic backup job.
 
 Because SQLite uses a WAL, copying `db.sqlite3` while the container is running can
 produce an inconsistent snapshot. Safer options:
@@ -190,7 +212,7 @@ known-good tag and updating deliberately.
 | Symptom | Check |
 | --- | --- |
 | 502 from Cloudflare | Is the container running? Is `cloudflared` running? |
-| Admin page 404/403 | Is `ADMIN_TOKEN` set? Did `config.json` override it? |
+| Admin page 404/403 | Is `admin_token` set in `vw-data/config.json`? |
 | No live sync | WebSocket path/port not routed through the tunnel |
 | Login works but attachments fail | Check storage mount and permissions on `vw-data` |
 | Settings changes ignored | `config.json` overrides environment variables |

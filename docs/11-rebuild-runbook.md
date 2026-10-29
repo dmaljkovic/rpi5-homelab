@@ -1,8 +1,6 @@
 # 11 – Rebuild runbook
 
-This is the ordered plan for rebuilding the stack from a blank Raspberry Pi. It
-reconstructs what is running today and incorporates the fixes recommended in
-[08-security.md](08-security.md).
+This is the ordered plan for rebuilding the stack from a blank Raspberry Pi.
 
 Use the placeholders from the [README](../README.md):
 
@@ -26,7 +24,7 @@ Use the placeholders from the [README](../README.md):
 | 7 | Deploy Nextcloud | 30 min |
 | 8 | Deploy Vaultwarden | 20 min |
 | 9 | Deploy Jellyfin | 20 min |
-| 10 | Harden, back up, monitor | 45 min |
+| 10 | Harden and monitor | 35 min |
 
 Do not skip the verification step at the end of each phase.
 
@@ -312,11 +310,11 @@ Then:
 docker exec -it vaultwarden /vaultwarden hash
 ```
 
-Put the hash in the authoritative config (`config.json` or `ADMIN_TOKEN`), restart, and
-set `SIGNUPS_ALLOWED=false`.
+Put the hash in `vw-data/config.json` as `admin_token` and treat that file as the single
+source; do not also set `ADMIN_TOKEN` in `.env` or compose. Restart and set
+`SIGNUPS_ALLOWED=false`.
 
-Verify: log in, create an item, confirm it survives a container restart, and check the
-backup.
+Verify: log in, create an item, and confirm it survives a container restart.
 
 ## Phase 9 – Jellyfin
 
@@ -340,7 +338,7 @@ Then recreate the container.
 
 Verify: play a file locally and through `https://media.example.com`.
 
-## Phase 10 – Harden, back up, monitor
+## Phase 10 – Harden and monitor
 
 1. SSH keys only:
 
@@ -367,21 +365,9 @@ Verify: play a file locally and through `https://media.example.com`.
 
 3. Add firewall rules ([02-network.md](02-network.md)).
 4. Put `vault.example.com` behind Cloudflare Access.
-5. Install the backup script and schedule it:
-
-   ```bash
-   sudo ./scripts/backup.sh /mnt/myssd/backups
-   sudo crontab -e
-   ```
-
-   ```cron
-   30 3 * * * /home/pi/rpi5-homelab/scripts/backup.sh /mnt/myssd/backups >> /var/log/rpi5-backup.log 2>&1
-   ```
-
-6. Copy backups off-site with restic/borg.
-7. Enable Cloudflare "Always Use HTTPS" and HSTS.
-8. Apply pending Pi-hole and EEPROM updates.
-9. Run the healthcheck:
+5. Enable Cloudflare "Always Use HTTPS" and HSTS.
+6. Apply pending Pi-hole and EEPROM updates.
+7. Run the healthcheck:
 
    ```bash
    ./scripts/healthcheck.sh
@@ -399,28 +385,8 @@ Verify: play a file locally and through `https://media.example.com`.
 - [ ] `docker ps` shows Nextcloud, MariaDB, Vaultwarden and Jellyfin healthy
 - [ ] Vaultwarden data survives a restart
 - [ ] Nextcloud background cron runs every 5 minutes
-- [ ] Backups exist on the NVMe and off-site
-- [ ] A restore has been tested
 - [ ] No inbound ports are forwarded on the router
 - [ ] SSH password authentication is disabled
 - [ ] VNC and FTP are disabled unless deliberately needed
 - [ ] Pi-hole and EEPROM are up to date
 - [ ] `vcgencmd get_throttled` returns `0x0`
-
-## What the original setup looked like
-
-For reference, the live system at scan time differed from this runbook in these ways:
-
-- Pi-hole upstream was already `127.0.0.1#5335`, with Unbound forwarding to Cloudflare
-  over DoT (the recursive config was kept as `.bak`).
-- Nextcloud `overwrite.cli.url` still referenced the previous domain and used `http://`;
-  proxy headers were not set.
-- Vaultwarden stored `ADMIN_TOKEN` in plaintext, and `config.json` overrode the compose
-  environment.
-- Jellyfin advertised `http://192.168.1.10` instead of the public HTTPS URL.
-- No cron entry existed for Nextcloud background jobs.
-- VNC and `vsftpd` were running; SSH accepted passwords; UFW was absent.
-- Backups were manual and local only.
-
-The runbook above is the corrected rebuild plan, not a byte-for-byte copy of the
-original.

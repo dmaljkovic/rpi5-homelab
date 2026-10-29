@@ -41,7 +41,7 @@ Pi-hole v6 stores its configuration in `/etc/pihole/pihole.toml`. The file is ma
 
 ## Blocklists
 
-The gravity database at scan time had about 380,333 domains from nine lists:
+The gravity database has about 380,333 domains from nine lists:
 
 ```text
 https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts

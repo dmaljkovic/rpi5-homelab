@@ -10,8 +10,8 @@
 | Root storage | 58.2 GB microSD card |
 | Data storage | 465.8 GB Crucial P3 Plus NVMe SSD (`CT500P3PSSD8`) |
 | Network | On-board Ethernet (Wi-Fi disabled in firmware config) |
-| Cooling | Active cooling assumed; `get_throttled=0x0` at scan |
-| Temperature | ~52 °C idle at scan |
+| Cooling | Active cooling |
+| Temperature | ~52 °C idle |
 
 The SD card holds the OS, Docker images, Nextcloud data and all container metadata.
 The NVMe SSD is mounted at `/mnt/myssd` and is used for the Jellyfin media library.
@@ -27,8 +27,7 @@ Kernel: 6.12.96+rpt-rpi-2712 #1 SMP PREEMPT Debian 1:6.12.96-1+rpt1 (2026-07-24)
 Architecture: aarch64
 ```
 
-This is Raspberry Pi OS (64-bit), Debian 12 based. At scan time the system had been up
-for 57 days.
+This is Raspberry Pi OS (64-bit), Debian 12 based.
 
 ## Storage layout
 
@@ -111,7 +110,7 @@ sudo mount -a
 
 ## Maintenance notes
 
-- **EEPROM update available.** At scan time `rpi-eeprom-update` reported an update.
+- **EEPROM update available.** `rpi-eeprom-update` reports an update.
   Apply it during a maintenance window:
 
   ```bash

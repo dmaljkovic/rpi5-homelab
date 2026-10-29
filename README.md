@@ -50,7 +50,7 @@ DNS and web traffic are deliberately separated:
 
 ## Services
 
-| Service | Version at scan time | Local port | Public hostname | Exposure |
+| Service | Version | Local port | Public hostname | Exposure |
 | --- | --- | --- | --- | --- |
 | Pi-hole Core / Web / FTL | 6.4.3 / 6.6 / 6.7 | 53, 80, 443 | – | LAN only |
 | Unbound | 1.17.1 | 127.0.0.1:5335 | – | Localhost only |
@@ -71,8 +71,6 @@ DNS and web traffic are deliberately separated:
 | Root disk | 58.2 GB microSD (`/dev/mmcblk0p2`, 57.7 GB ext4) |
 | Data disk | 465.8 GB NVMe SSD (`/dev/nvme0n1p1`) mounted at `/mnt/myssd` |
 | Network | Ethernet, static `192.168.1.10/24`, IPv6 SLAAC |
-| Uptime at scan | 57 days |
-| Temperature at scan | ~52 °C, `get_throttled=0x0` |
 
 ## Repository layout
 
@@ -87,9 +85,6 @@ DNS and web traffic are deliberately separated:
 │   ├── 05-nextcloud.md
 │   ├── 06-vaultwarden.md
 │   ├── 07-jellyfin.md
-│   ├── 08-security.md
-│   ├── 09-backup-and-recovery.md
-│   ├── 10-maintenance-and-troubleshooting.md
 │   └── 11-rebuild-runbook.md
 ├── configs/
 │   ├── unbound/
@@ -100,7 +95,6 @@ DNS and web traffic are deliberately separated:
 │   ├── jellyfin/
 │   └── network/
 └── scripts/
-    ├── backup.sh
     └── healthcheck.sh
 ```
 
@@ -114,36 +108,10 @@ hostnames to three local HTTP services. Nextcloud and its MariaDB run in Docker 
 bind-mounted data on the SD card. Vaultwarden runs in Docker, bound to localhost, with
 SQLite data. Jellyfin runs with host networking and reads media from the NVMe SSD.
 
-## Status at scan time
-
-Verified working:
-
-- Pi-hole is listening on port 53 over IPv4 and IPv6 and blocking is enabled.
-- Unbound is listening on `127.0.0.1:5335`.
-- DNSSEC validation works: `dnssec-failed.org` returns `SERVFAIL` while
-  `cloudflare.com` returns `NOERROR`.
-- Gravity database contains about **380,333** blocked domains.
-- All three public hostnames resolve to Cloudflare and respond:
-  Nextcloud `302`, Vaultwarden `200`, Jellyfin `302`.
-- All four containers are running; Vaultwarden and Jellyfin are healthy.
-
-Known issues and recommended fixes are listed in [docs/08-security.md](docs/08-security.md).
-The most important ones:
-
-1. Nextcloud still advertises the previous domain and uses `http://` in
-   `overwrite.cli.url`; proxy headers are not configured.
-2. Vaultwarden's `ADMIN_TOKEN` is stored in plaintext, and `config.json` overrides the
-   values in `docker-compose.yaml`.
-3. Nextcloud background jobs are not using system cron.
-4. VNC, plain FTP (`vsftpd`) and SSH password authentication are enabled.
-5. No off-site backup exists for Nextcloud or Vaultwarden.
-6. Pi-hole and the Pi EEPROM both have updates available.
-
 ## Start here
 
 - New to the project? Read [docs/11-rebuild-runbook.md](docs/11-rebuild-runbook.md).
 - Want the DNS details? Read [docs/03-dns-pihole-unbound.md](docs/03-dns-pihole-unbound.md).
-- Want to harden the box? Read [docs/08-security.md](docs/08-security.md).
 
 ## Disclaimer
 

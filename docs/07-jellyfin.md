@@ -20,7 +20,7 @@ clients can discover it on the LAN and so it can use the host's ports directly.
 | Public URL | `https://media.example.com` |
 | Healthcheck | `curl -f http://192.168.1.10:8096/health` every 30 s |
 
-At scan time the Jellyfin directory was about **1.1 GB**, mostly metadata and images.
+The Jellyfin directory is about **1.1 GB**, mostly metadata and images.
 
 ## Compose file
 
@@ -88,7 +88,7 @@ docker exec jellyfin ls -la /media
 ## HTTPS and the published URL
 
 TLS is terminated by Cloudflare. Jellyfin itself serves plain HTTP and its network
-configuration at scan time was:
+configuration is:
 
 ```xml
 <BaseUrl />

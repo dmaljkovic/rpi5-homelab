@@ -19,7 +19,7 @@ published through the Cloudflare Tunnel at `cloud.example.com`.
 | Public URL | `https://cloud.example.com` |
 | Local URL | `http://192.168.1.10:8082` |
 
-At scan time the Nextcloud directory occupied about **3.6 GB** on the SD card.
+The Nextcloud directory occupies about **3.6 GB** on the SD card.
 
 ## Compose file
 
@@ -71,8 +71,19 @@ The live `config.php` contains:
 'trusted_domains' =>
 array (
   0 => 'cloud.example.com',
+  1 => '192.168.1.10',
 ),
-'overwrite.cli.url' => 'http://cloud.example.com',
+'overwrite.cli.url' => 'https://cloud.example.com',
+'overwriteprotocol' => 'https',
+'trusted_proxies' =>
+array (
+  0 => '172.19.0.1',
+  1 => '127.0.0.1',
+),
+'forwarded_for_headers' =>
+array (
+  0 => 'HTTP_X_FORWARDED_FOR',
+),
 'datadirectory' => '/var/www/html/data',
 'memcache.local' => '\\OC\\Memcache\\APCu',
 'dbname' => 'nextcloud',
@@ -105,9 +116,17 @@ docker exec -u www-data nextcloud-app php occ config:system:set \
 # Add the LAN name/IP if you also use it directly
 docker exec -u www-data nextcloud-app php occ config:system:set \
   trusted_domains 1 --value=192.168.1.10
+
+# Trust the Docker bridge gateway and localhost as reverse proxies
+docker exec -u www-data nextcloud-app php occ config:system:set \
+  trusted_proxies 0 --value=172.19.0.1
+docker exec -u www-data nextcloud-app php occ config:system:set \
+  trusted_proxies 1 --value=127.0.0.1
+docker exec -u www-data nextcloud-app php occ config:system:set \
+  forwarded_for_headers 0 --value=HTTP_X_FORWARDED_FOR
 ```
 
-## Installed apps at scan time
+## Installed apps
 
 Enabled apps included:
 
@@ -135,24 +154,32 @@ Notable additions beyond a default install:
 Disabled apps included `admin_audit`, `encryption`, `files_external`,
 `richdocumentscode`, `suspicious_login` and `twofactor_nextcloud_notification`.
 
-## Known issues found during the scan
+## Configuration fixes
 
-### 1. Stale canonical URL and missing HTTPS override
+### 1. Stale canonical URL and missing HTTPS override (fixed 2026-10-29)
 
-`overwrite.cli.url` still points at the **previous** domain and uses `http://`. The
-public endpoint therefore returns:
+Originally, `overwrite.cli.url` pointed at the **previous** domain and used `http://`,
+so the public endpoint returned:
 
 ```text
 https://cloud.example.com -> 302 http://cloud.example.com/login
 ```
 
-Cloudflare's "Always Use HTTPS" may upgrade the browser, but Nextcloud should be
-configured correctly at the application layer. Fix with the `occ` commands above.
+The live config now uses:
 
-### 2. No trusted proxy configuration
+```php
+'overwrite.cli.url' => 'https://cloud.example.com',
+'overwriteprotocol' => 'https',
+```
+
+and the public endpoint redirects to `https://cloud.example.com/login`. Direct HTTP
+access to `127.0.0.1:8082` also redirects to HTTPS; use the public hostname or a local
+TLS reverse proxy for LAN access.
+
+### 2. Trusted proxy configuration (fixed 2026-10-29)
 
 `trusted_proxies` and `forwarded_for_headers` were not set. Behind the tunnel,
-Nextcloud sees the connection as coming from the local Docker/cloudflared path rather
+Nextcloud saw the connection as coming from the local Docker/cloudflared path rather
 than the real client. This affects:
 
 - brute-force protection (it may throttle the wrong address)
@@ -160,16 +187,16 @@ than the real client. This affects:
 - URL generation
 - client IP detection
 
-Set `trusted_proxies` to the address cloudflared uses to reach the container. With
-Docker's userland proxy this is commonly the Docker bridge gateway (for example
-`172.17.0.1`). Verify what the container actually sees, then:
+The live config now has the addresses the container actually sees:
 
-```bash
-docker exec -u www-data nextcloud-app php occ config:system:set \
-  trusted_proxies 0 --value=172.17.0.1
-docker exec -u www-data nextcloud-app php occ config:system:set \
-  forwarded_for_headers 0 --value=HTTP_X_FORWARDED_FOR
+```text
+trusted_proxies[0] = 172.19.0.1   (Docker bridge gateway)
+trusted_proxies[1] = 127.0.0.1
+forwarded_for_headers[0] = HTTP_X_FORWARDED_FOR
 ```
+
+Verify with `occ config:system:get trusted_proxies` and
+`occ config:system:get forwarded_for_headers`.
 
 Cloudflare also sends `CF-Connecting-IP`. If you need the real client IP and you are
 certain only Cloudflare can reach the origin, handle it at the proxy layer. Do not trust

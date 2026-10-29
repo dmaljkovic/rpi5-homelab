@@ -33,8 +33,8 @@ during setup). The service is enabled at boot and managed by systemd.
 
 ## Tunnel
 
-The production tunnel is a **named tunnel** with one active connector. At scan time it
-had four connections to Cloudflare edge locations.
+The production tunnel is a **named tunnel** with one active connector. It maintains
+four connections to Cloudflare edge locations.
 
 Tunnel names and IDs are redacted in this repository. The examples use the name
 `pi5-tunnel`.
@@ -180,7 +180,7 @@ curl -I https://vault.example.com
 curl -I https://media.example.com
 ```
 
-Observed at scan time:
+Observed responses:
 
 ```text
 https://cloud.example.com  -> 302 (to /login)
@@ -195,11 +195,12 @@ The tunnel connector was healthy and connected to four Cloudflare edge nodes.
 The configuration contains traces of two public domains:
 
 - the current domain, used in `config.yml` and Nextcloud `trusted_domains`
-- a previous domain, still present in Nextcloud `overwrite.cli.url` and in shell history
+- a previous domain, formerly in Nextcloud `overwrite.cli.url` and still in shell history
 
-The previous domain no longer resolves. This is harmless for the tunnel itself but
-causes Nextcloud to generate URLs for a dead hostname. Fix it as described in
-[05-nextcloud.md](05-nextcloud.md).
+The previous domain no longer resolves. This was harmless for the tunnel itself but
+caused Nextcloud to generate URLs for a dead hostname. It was fixed on 2026-10-29 as
+described in [05-nextcloud.md](05-nextcloud.md); Nextcloud now uses the current domain
+over HTTPS.
 
 Also note that DNS route commands in the shell history used the previous domain. When a
 domain changes, re-run `cloudflared tunnel route dns` for every hostname and update all
