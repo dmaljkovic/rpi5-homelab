@@ -104,21 +104,6 @@ DNS and web traffic are deliberately separated:
     └── healthcheck.sh
 ```
 
-## Reconstruction timeline
-
-Dates are inferred from file timestamps and shell history on the live system.
-
-| When | What happened |
-| --- | --- |
-| 2024-11-19 | Raspberry Pi OS installed, user created |
-| 2025-04-26 | Pi-hole installed; Unbound configured; Pi-hole self-signed TLS certificate created |
-| 2025-04-30 | `cloudflared` package downloaded |
-| 2025-05-11 | First Cloudflare tunnel credentials created |
-| 2025-08/09 | Vaultwarden deployed with Docker; first data backup |
-| 2025-11-12 | Current Cloudflare tunnel created; Nextcloud deployed with MariaDB |
-| 2026-08-05 | Pi-hole migrated to v6 configuration (`pihole.toml`) |
-| 2026-10-28 | Documentation scan performed |
-
 ## How it works, in one paragraph
 
 Clients on the LAN send DNS queries to Pi-hole. Pi-hole applies blocklists and forwards
